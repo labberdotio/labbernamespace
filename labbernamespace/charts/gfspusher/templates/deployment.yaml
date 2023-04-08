@@ -1,0 +1,126 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-gfspusher
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfspusher
+    app: {{ .Release.Name }}-gfspusher
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-gfspusher
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-gfspusher
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      containers:
+      - name: gfspusher
+        # image: buildregistry.localdomain/gfs-pusher:latest
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 5005
+        env:
+        - name: LISTEN_ADDR
+          value: "0.0.0.0"
+        - name: LISTEN_PORT
+          value: "5005"
+        # - name: GFS_HOST
+        #   value: {{ .Release.Name }}-gfsapi
+        # - name: GFS_PORT
+        #   value: "5000"
+        # - name: GFS_NAMESPACE
+        #   value: "buildkite"
+        - name: GFS_URL
+          value: "{{ .Values.global.gfsapi.hostname }}:{{ .Values.global.gfsapi.port }}" # "{{ .Release.Name }}-gfsapi:5000"
+        - name: GFS_USERNAME
+          value: "{{ .Values.global.gfsapi.username }}" # "root"
+        - name: GFS_PASSWORD
+          value: "{{ .Values.global.gfsapi.username }}" # "root"
+        - name: GFS_NAMESPACE
+          value: "{{ .Values.global.gfsnamespace }}" # "buildkite"
+        - name: RABBITMQ_URL
+          value: "{{ .Values.global.rabbitmq.hostname }}:{{ .Values.global.rabbitmq.port }}" # "{{ .Release.Name }}-rabbit:5672"
+        - name: RABBITMQ_USERNAME
+          value: "{{ .Values.global.rabbitmq.username }}" # "rabbitmq"
+        - name: RABBITMQ_PASSWORD
+          value: "{{ .Values.global.rabbitmq.username }}" # "rabbitmq"
+        # # - name: KAFKA_HOST
+        # #   value: "{{ .Release.Name }}-broker"
+        # # - name: KAFKA_PORT
+        # #   value: "9092"
+        # - name: KAFKA_URL
+        #   value: "{{ .Release.Name }}-broker:9092"
+        # - name: KAFKA_USERNAME
+        #   value: "kafka"
+        # - name: KAFKA_PASSWORD
+        #   value: "kafka"
+        - name: LOG_LEVEL
+          value: "{{ .Values.global.loglevel }}" # "DEBUG"
+      # imagePullSecrets:
+      # - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-gfspusher
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfspusher
+    app: {{ .Release.Name }}-gfspusher
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  ports:
+  - name: port1
+    protocol: TCP
+    port: 5005
+    targetPort: 5005
+  selector:
+    # role: gfspusher
+    app: {{ .Release.Name }}-gfspusher
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-gfspusher
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfspusher
+    app: {{ .Release.Name }}-gfspusher
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  # - host: "{{ .Release.Name }}.localdomain"
+  # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+  - host: "gfs.{{ .Values.global.domain.name }}"
+    http:
+      paths:
+      - path: "/pusher/{{ .Values.global.gfsnamespace }}/"
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-gfspusher
+            port:
+              number: 5005
+---

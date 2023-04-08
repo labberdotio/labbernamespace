@@ -1,0 +1,132 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-gfsrenderer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsrenderer
+    app: {{ .Release.Name }}-gfsrenderer
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-gfsrenderer
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-gfsrenderer
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      containers:
+      - name: gfsrenderer
+        # image: buildregistry.localdomain/gfs-renderer:latest
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 5002
+        env:
+        - name: LISTEN_ADDR
+          value: "0.0.0.0"
+        - name: LISTEN_PORT
+          value: "5002"
+        - name: GFS_HOST
+          value: "{{ .Values.global.gfsapi.hostname }}" # {{ .Release.Name }}-gfsapi
+        - name: GFS_PORT
+          value: "{{ .Values.global.gfsapi.port }}" # "5000"
+        - name: GFS_NAMESPACE
+          value: "{{ .Values.global.gfsnamespace }}" # "buildkite"
+        # - name: GFSAPI_NAMESPACE
+        #   value: "buildkite"
+        - name: GFS_USERNAME
+          value: "{{ .Values.global.gfsapi.username }}" # "root"
+        - name: GFS_PASSWORD
+          value: "{{ .Values.global.gfsapi.password }}" # "root"
+        - name: LOG_LEVEL
+          value: "{{ .Values.global.loglevel }}" # "DEBUG"
+      # imagePullSecrets:
+      # - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-gfsrenderer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsrenderer
+    app: {{ .Release.Name }}-gfsrenderer
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  ports:
+  - name: port1
+    protocol: TCP
+    port: 5002
+    targetPort: 5002
+  selector:
+    # role: gfsrenderer
+    app: {{ .Release.Name }}-gfsrenderer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-gfsrenderer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsrenderer
+    app: {{ .Release.Name }}-gfsrenderer
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  # - host: "{{ .Release.Name }}.localdomain"
+  # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+  - host: "gfs.{{ .Values.global.domain.name }}"
+    http:
+      paths:
+      - path: /query
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-gfsrenderer
+            port:
+              number: 5002
+  # - host: "{{ .Release.Name }}.localdomain"
+  # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+  - host: "gfs.{{ .Values.global.domain.name }}"
+    http:
+      paths:
+      - path: "/render/{{ .Values.global.gfsnamespace }}/"
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-gfsrenderer
+            port:
+              number: 5002
+  # - host: "{{ .Release.Name }}.localdomain"
+  # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+  - host: "gfs.{{ .Values.global.domain.name }}"
+    http:
+      paths:
+      - path: /view
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-gfsrenderer
+            port:
+              number: 5002
+---
