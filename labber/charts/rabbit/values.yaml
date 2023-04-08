@@ -1,0 +1,5 @@
+
+image:
+  repository: rabbitmq
+  tag: 3.8.11-management
+  pullPolicy: Always

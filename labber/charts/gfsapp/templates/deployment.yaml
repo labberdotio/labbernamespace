@@ -1,0 +1,104 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-gfsapp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsapp
+    app: {{ .Release.Name }}-gfsapp
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-gfsapp
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-gfsapp
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      containers:
+      - name: gfsapp
+        # image: buildregistry.localdomain/gfs-ui:latest
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+        env:
+        - name: REACT_APP_GFS_FS_NAME
+          value: "gfs1"
+        - name: REACT_APP_GFS_API_HOST
+          # value: "{{ .Release.Name }}.localdomain"
+          value: "gfs.{{ .Values.global.domain.name }}"
+        - name: REACT_APP_GFS_API_PORT
+          value: "80"
+        - name: REACT_APP_GFS_WS_HOST
+          # value: "{{ .Release.Name }}.localdomain"
+          value: "gfs.{{ .Values.global.domain.name }}"
+        - name: REACT_APP_GFS_WS_PORT
+          value: "80"
+      # imagePullSecrets:
+      # - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-gfsapp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsapp
+    app: {{ .Release.Name }}-gfsapp
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  ports:
+  - name: port1
+    protocol: TCP
+    port: 80
+    targetPort: 80
+  selector:
+    # role: gfsapp
+    app: {{ .Release.Name }}-gfsapp
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-gfsapp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsapp
+    app: {{ .Release.Name }}-gfsapp
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  # - host: "{{ .Release.Name }}.localdomain"
+  # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+  - host: "gfsapp.{{ .Values.global.domain.name }}"
+    http:
+      paths:
+      # - path: /gfsapp
+      # - path: /app
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-gfsapp
+            port:
+              number: 80
+---

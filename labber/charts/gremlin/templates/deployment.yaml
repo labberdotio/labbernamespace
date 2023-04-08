@@ -1,0 +1,117 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-gremlin-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  # accessModes:
+  #   - ReadWriteOnce
+  accessModes:
+    - ReadWriteMany
+  storageClassName: {{ .Release.Name }}-nfs-client
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-gremlin
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gremlin
+    app: {{ .Release.Name }}-gremlin
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-gremlin
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-gremlin
+    spec:
+      containers:
+      - name: gremlin
+        # image: buildregistry.localdomain/gfs-gremlin:latest
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 8182
+        volumeMounts:
+        # - name: gremlin-config
+        #   mountPath: /gremlin-server/conf/gremlin-server-custom.yml
+        # - name: neo4j-properties
+        #   mountPath: /gremlin-server/conf/neo4j.properties
+        # - name: neo4j-groovy
+        #   mountPath: /gremlin-server/scripts/neo4j.groovy
+        - name: neo4j-data
+          mountPath: /data
+      # imagePullSecrets:
+      # - name: regcred
+      # imagePullPolicy: Always
+      volumes:
+      # - name: gremlin-config
+      #   hostPath:
+      #     path: /home/bots/Documents/development/gfssaas/etc/gremlin/config/gremlin-server-custom.yml
+      # - name: neo4j-properties
+      #   hostPath:
+      #     path: /home/bots/Documents/development/gfssaas/etc/gremlin/config/neo4j.properties
+      # - name: neo4j-groovy
+      #   hostPath:
+      #     path: /home/bots/Documents/development/gfssaas/etc/gremlin/script/neo4j.groovy
+      - name: neo4j-data
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-gremlin-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-gremlin
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gremlin
+    app: {{ .Release.Name }}-gremlin
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  ports:
+  - name: port1
+    protocol: TCP
+    port: 8182
+    targetPort: 8182
+  selector:
+    # role: gremlin
+    app: {{ .Release.Name }}-gremlin
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-gremlin
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  # - host: "{{ .Release.Name }}.localdomain"
+  # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+  - host: "gremlin.{{ .Values.global.domain.name }}"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-gremlin
+            port:
+              number: 8182
+---

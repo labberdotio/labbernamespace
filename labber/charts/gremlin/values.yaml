@@ -1,0 +1,5 @@
+
+image:
+  repository: buildregistry.localdomain/gfs-gremlin
+  tag: latest
+  pullPolicy: Always
