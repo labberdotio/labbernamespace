@@ -1,0 +1,107 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-rabbit
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: rabbit
+    app: {{ .Release.Name }}-rabbit
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-rabbit
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-rabbit
+    spec:
+      containers:
+      - name: rabbit
+        # image: rabbitmq:3.8.11-management"
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        # -e RABBITMQ_DEFAULT_USER=rabbitmq \
+        # -e RABBITMQ_DEFAULT_PASS=rabbitmq \
+        # -e RABBITMQ_DEFAULT_VHOST=/ \
+        # -e RABBITMQ_LOG_BASE=/var/log/rabbitmq \
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: "rabbitmq"
+        - name: RABBITMQ_DEFAULT_PASS
+          value: "rabbitmq"
+        - name: RABBITMQ_DEFAULT_VHOST
+          value: "/"
+        - name: RABBITMQ_LOG_BASE
+          value: "/var/log/rabbitmq "
+        ports:
+        # - containerPort: 15672
+        - containerPort: 5672
+        # - containerPort: 8443
+        # - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-rabbit
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: rabbit
+    app: {{ .Release.Name }}-rabbit
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  # type: NodePort
+  ports:
+  # - name: port1
+  #   protocol: TCP
+  #   port: 15672
+  #   targetPort: 15672
+  - name: port2
+    protocol: TCP
+    port: 5672
+    targetPort: 5672
+    # nodePort: 5672
+  # - name: port3
+  #   protocol: TCP
+  #   port: 8443
+  #   targetPort: 443
+  # - name: port4
+  #   protocol: TCP
+  #   port: 8000
+  #   targetPort: 80
+  selector:
+    # role: rabbit
+    app: {{ .Release.Name }}-rabbit
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-rabbit
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  # - host: "{{ .Release.Name }}.localdomain"
+  # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+  - host: "rabbit.{{ .Values.global.domain.name }}"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-rabbit
+            port:
+              number: 5672
+---

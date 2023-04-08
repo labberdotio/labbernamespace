@@ -1,0 +1,62 @@
+
+global:
+
+  loglevel: INFO
+
+  domain:
+    # host: labber
+    name: labber.io
+
+  gfsnamespace: namespace
+
+  gfsapi:
+    hostname: labber-gfsapi
+    port: 5000
+    username: root
+    password: root
+
+  rabbitmq:
+    hostname: labber-rabbit
+    port: 5672
+    username: rabbitmq
+    password: rabbitmq
+
+
+gfspulsinator:
+
+  image:
+    repository: buildregistry.localdomain/gfs-pulsinator
+    tag: latest
+    pullPolicy: Always
+
+
+gfspusher:
+
+  image:
+    repository: buildregistry.localdomain/gfs-pusher
+    tag: latest
+    pullPolicy: Always
+
+
+gfsrenderer:
+
+  image:
+    repository: buildregistry.localdomain/gfs-renderer
+    tag: latest
+    pullPolicy: Always
+
+
+gfsrippler:
+
+  image:
+    repository: buildregistry.localdomain/gfs-rippler
+    tag: latest
+    pullPolicy: Always
+
+
+gfssubscriber:
+
+  image:
+    repository: buildregistry.localdomain/gfs-subscriber
+    tag: latest
+    pullPolicy: Always

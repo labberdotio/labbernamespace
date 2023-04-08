@@ -1,0 +1,62 @@
+
+global:
+
+  domain:
+    # host: labber
+    name: labber.io
+
+
+gfsapi:
+
+  image:
+    repository: buildregistry.localdomain/gfs-api
+    tag: latest
+    pullPolicy: Always
+
+
+gfsui:
+
+  image:
+    repository: buildregistry.localdomain/gfs-ui
+    tag: latest
+    pullPolicy: Always
+
+
+gfsapp:
+
+  image:
+    repository: buildregistry.localdomain/gfs-app
+    tag: latest
+    pullPolicy: Always
+
+
+gremlin:
+
+  image:
+    repository: buildregistry.localdomain/gfs-gremlin
+    tag: latest
+    pullPolicy: Always
+
+
+kafka:
+
+  image:
+    repository: buildregistry.localdomain/cp-server
+    tag: 7.0.0
+    pullPolicy: Always
+
+
+# neo4j:
+# 
+#   image:
+#     repository: buildregistry.localdomain/neo4j
+#     tag: 3.5.8
+#     pullPolicy: Always
+
+
+zookeeper:
+
+  image:
+    repository: buildregistry.localdomain/cp-zookeeper
+    tag: 7.0.0
+    pullPolicy: Always

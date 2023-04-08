@@ -1,0 +1,5 @@
+
+image:
+  repository: buildregistry.localdomain/gfs-rippler
+  tag: latest
+  pullPolicy: Always

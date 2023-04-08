@@ -1,0 +1,5 @@
+
+image:
+  repository: buildregistry.localdomain/gfs-pulsinator
+  tag: latest
+  pullPolicy: Always

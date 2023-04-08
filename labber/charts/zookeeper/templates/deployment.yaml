@@ -1,0 +1,82 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-zookeeper
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: zookeeper
+    app: {{ .Release.Name }}-zookeeper
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-zookeeper
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-zookeeper
+    spec:
+      containers:
+      - name: zookeeper
+        # image: buildregistry.localdomain/cp-zookeeper:7.0.0
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: ZOOKEEPER_CLIENT_PORT
+          value: "2181"
+        - name: ZOOKEEPER_TICK_TIME
+          value: "2181"
+        ports:
+        - containerPort: 2181
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-zookeeper
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: zookeeper
+    app: {{ .Release.Name }}-zookeeper
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  ports:
+  - name: port1
+    protocol: TCP
+    port: 2181
+    targetPort: 2181
+  selector:
+    # role: zookeeper
+    app: {{ .Release.Name }}-zookeeper
+---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: {{ .Release.Name }}-zookeeper
+#   namespace: {{ .Release.Namespace }}
+#   annotations:
+#     kubernetes.io/ingress.class: "traefik"
+# spec:
+#   rules:
+#   # - host: "{{ .Release.Name }}.localdomain"
+#   # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+#   - host: "gfs.{{ .Values.global.domain.name }}"
+#     http:
+#       paths:
+#       - path: /zookeeper
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: {{ .Release.Name }}-zookeeper
+#             port:
+#               number: 2181
+---

@@ -1,0 +1,108 @@
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: {{ .Release.Name }}-gfssubscriber
+#   namespace: {{ .Release.Namespace }}
+#   labels:
+#     # role: gfssubscriber
+#     app: {{ .Release.Name }}-gfssubscriber
+#     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+#     release: {{ .Release.Name }}
+#     heritage: {{ .Release.Service }}
+#     component: {{ .Release.Name }}
+#     managed-by: helm
+# spec:
+#   selector:
+#     matchLabels:
+#       app: {{ .Release.Name }}-gfssubscriber
+#   replicas: 1
+#   template:
+#     metadata:
+#       labels:
+#         app: {{ .Release.Name }}-gfssubscriber
+#       annotations:
+#         rollme: {{ randAlphaNum 5 | quote }}
+#     spec:
+#       containers:
+#       - name: gfssubscriber
+#         # image: buildregistry.localdomain/gfs-subscriber:latest
+#         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+#         imagePullPolicy: {{ .Values.image.pullPolicy }}
+#         ports:
+#         - containerPort: 5004
+#         env:
+#         - name: LISTEN_ADDR
+#           value: "0.0.0.0"
+#         - name: LISTEN_PORT
+#           value: "5004"
+#         - name: GFS_NAMESPACE
+#           value: "{{ .Values.global.gfsnamespace }}" # "buildkite"
+#         - name: GFS_PUSHER_HOST
+#           value: "gfspusher"
+#         - name: GFS_PUSHER_PORT
+#           value: "5002"
+#         # - name: GFS_HOST
+#         #   value: "gfsapi"
+#         # - name: GFS_PORT
+#         #   value: "5000"
+#         # - name: GFS_USERNAME
+#         #   value: "root"
+#         # - name: GFS_PASSWORD
+#         #   value: "root"
+#       # imagePullSecrets:
+#       # - name: regcred
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: {{ .Release.Name }}-gfssubscriber
+#   namespace: {{ .Release.Namespace }}
+#   labels:
+#     # role: gfssubscriber
+#     app: {{ .Release.Name }}-gfssubscriber
+#     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+#     release: {{ .Release.Name }}
+#     heritage: {{ .Release.Service }}
+#     component: {{ .Release.Name }}
+#     managed-by: helm
+# spec:
+#   ports:
+#   - name: port1
+#     protocol: TCP
+#     port: 5004
+#     targetPort: 5004
+#   selector:
+#     # role: gfssubscriber
+#     app: {{ .Release.Name }}-gfssubscriber
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: {{ .Release.Name }}-gfssubscriber
+#   namespace: {{ .Release.Namespace }}
+#   labels:
+#     # role: gfssubscriber
+#     app: {{ .Release.Name }}-gfssubscriber
+#     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+#     release: {{ .Release.Name }}
+#     heritage: {{ .Release.Service }}
+#     component: {{ .Release.Name }}
+#     managed-by: helm
+#   annotations:
+#     kubernetes.io/ingress.class: "traefik"
+# spec:
+#   rules:
+#   # - host: "{{ .Release.Name }}.localdomain"
+#   # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+#   - host: "gfs.{{ .Values.global.domain.name }}"
+#     http:
+#       paths:
+#       - path: "/{{ .Values.global.gfsnamespace }}/subscriber"
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: {{ .Release.Name }}-gfssubscriber
+#             port:
+#               number: 5004
+# ---

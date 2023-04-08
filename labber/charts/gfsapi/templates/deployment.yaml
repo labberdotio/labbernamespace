@@ -1,0 +1,125 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-gfsapi
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsapi
+    app: {{ .Release.Name }}-gfsapi
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-gfsapi
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-gfsapi
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      containers:
+      - name: gfsapi
+        # image: buildregistry.localdomain/gfs-api:latest
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 5000
+        env:
+        # - name: GREMLIN_HOST
+        #   value: "{{ .Release.Name }}-gremlin"
+        #  - name: GREMLIN_PORT
+        #   value: "8182"
+        - name: GREMLIN_URL
+          value: "{{ .Release.Name }}-gremlin:8182/gremlin"
+        - name: GREMLIN_USERNAME
+          value: "root"
+        - name: GREMLIN_PASSWORD
+          value: "root"
+        - name: RABBITMQ_URL
+          value: "{{ .Release.Name }}-rabbit:5672"
+        - name: RABBITMQ_USERNAME
+          value: "rabbitmq"
+        - name: RABBITMQ_PASSWORD
+          value: "rabbitmq"
+        # # - name: KAFKA_HOST
+        # #   value: "{{ .Release.Name }}-broker"
+        # # - name: KAFKA_PORT
+        # #   value: "9092"
+        # - name: KAFKA_URL
+        #   value: "{{ .Release.Name }}-broker:9092"
+        # - name: KAFKA_USERNAME
+        #   value: "kafka"
+        # - name: KAFKA_PASSWORD
+        #   value: "kafka"
+        - name: LOG_LEVEL
+          value: "INFO"
+      # imagePullSecrets:
+      # - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-gfsapi
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsapi
+    app: {{ .Release.Name }}-gfsapi
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  ports:
+  - name: port1
+    protocol: TCP
+    port: 5000
+    targetPort: 5000
+  selector:
+    # role: gfsapi
+    app: {{ .Release.Name }}-gfsapi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-gfsapi
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsapi
+    app: {{ .Release.Name }}-gfsapi
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  # - host: "{{ .Release.Name }}.localdomain"
+  # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+  - host: "gfs.{{ .Values.global.domain.name }}"
+    http:
+      paths:
+      - path: /server
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-gfsapi
+            port:
+              number: 5000
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-gfsapi
+            port:
+              number: 5000
+---
