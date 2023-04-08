@@ -29,6 +29,13 @@ spec:
         # image: buildregistry.localdomain/gfs-pusher:latest
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        resources:
+          requests:
+            # memory: ...
+            cpu: "50m"
+          limits:
+            # memory: ...
+            cpu: "100m"
         ports:
         - containerPort: 5005
         env:
