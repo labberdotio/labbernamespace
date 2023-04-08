@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+# set -x
 
 # Set the k8s API
 export KUBECLUSTER="nuke-k3s"

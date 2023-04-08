@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+# set -x
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -12,8 +12,17 @@ THIS_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 echo "This Dir: $THIS_DIR"
 source $THIS_DIR/common.sh
 
-export GFSNAMESPACE="buildkite"
+# export GFSNAMESPACE="buildkite"
 # export GFSNAMESPACE="snagger"
+
+export GFSNAMESPACE="${1}"
+if [ -z "${GFSNAMESPACE}" ]; then
+  echo "Error: No namespace given"
+  echo "Usage: ./deploy_labbernamespace.sh NAMESPACE"
+  exit 0
+fi
+
+echo "Deploying services for namespace: ${GFSNAMESPACE}"
 
 export HELM_NAMESPACE_NAMESPACE="${HELM_NAMESPACE}"
 export HELM_NAMESPACE_RELEASE="${GFSNAMESPACE}-${HELM_RELEASE}"
