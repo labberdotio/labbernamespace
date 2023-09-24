@@ -10,7 +10,7 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 THIS_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 echo "This Dir: $THIS_DIR"
-source $THIS_DIR/common.sh
+source $THIS_DIR/settings.sh
 
 # 
 # eval $(aws ecr get-login --no-include-email --profile=ecr-user --region=us-west-2)
