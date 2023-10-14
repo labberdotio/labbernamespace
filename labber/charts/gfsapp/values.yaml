@@ -1,5 +1,0 @@
-
-image:
-  repository: buildregistry.localdomain/gfs-app
-  tag: latest
-  pullPolicy: Always

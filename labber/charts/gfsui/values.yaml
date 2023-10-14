@@ -1,5 +1,0 @@
-
-image:
-  repository: buildregistry.localdomain/gfs-ui
-  tag: latest
-  pullPolicy: Always
