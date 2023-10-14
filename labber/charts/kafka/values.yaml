@@ -1,5 +1,0 @@
-
-image:
-  repository: buildregistry.localdomain/cp-server
-  tag: 7.0.0
-  pullPolicy: Always
