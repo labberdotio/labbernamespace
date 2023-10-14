@@ -60,3 +60,11 @@ gfssubscriber:
     repository: buildregistry.localdomain/gfs-subscriber
     tag: latest
     pullPolicy: Always
+
+
+gfsfuse:
+
+  image:
+    repository: buildregistry.localdomain/gfs-fuse
+    tag: latest
+    pullPolicy: Always

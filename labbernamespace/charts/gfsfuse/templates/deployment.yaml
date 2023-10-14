@@ -1,0 +1,119 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-gfsfuse
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsfuse
+    app: {{ .Release.Name }}-gfsfuse
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-gfsfuse
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-gfsfuse
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      containers:
+      - name: gfsfuse
+        # image: buildregistry.localdomain/gfs-fuse:latest
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 3000
+        env:
+        - name: LISTEN_ADDR
+          value: "0.0.0.0"
+        - name: LISTEN_PORT
+          value: "3000"
+        - name: GFSAPI_HOST
+          value: "{{ .Values.global.gfsapi.hostname }}" # {{ .Release.Name }}-gfsapi
+        - name: GFSAPI_PORT
+          value: "{{ .Values.global.gfsapi.port }}" # "3000"
+        - name: GFSAPI_NAMESPACE
+          value: "{{ .Values.global.gfsnamespace }}" # "buildkite"
+        - name: GFS_USERNAME
+          value: "{{ .Values.global.gfsapi.username }}" # "root"
+        - name: GFS_PASSWORD
+          value: "{{ .Values.global.gfsapi.password }}" # "root"
+        - name: LOG_LEVEL
+          value: "{{ .Values.global.loglevel }}" # "DEBUG"
+        # From the Sep 15, 2019 docker-compose.yaml
+        # privileged: true
+        # cap_add: 
+        #   - SYS_ADMIN
+        #   - MKNOD
+        # devices:
+        #   - "/dev/fuse:/dev/fuse"
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+              - MKNOD
+      # imagePullSecrets:
+      # - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-gfsfuse
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsfuse
+    app: {{ .Release.Name }}-gfsfuse
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+spec:
+  ports:
+  - name: port1
+    protocol: TCP
+    port: 3000
+    targetPort: 3000
+  selector:
+    # role: gfsfuse
+    app: {{ .Release.Name }}-gfsfuse
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-gfsfuse
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # role: gfsfuse
+    app: {{ .Release.Name }}-gfsfuse
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Release.Name }}
+    managed-by: helm
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  # - host: "{{ .Release.Name }}.localdomain"
+  # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
+  - host: "gfs.{{ .Values.global.domain.name }}"
+    http:
+      paths:
+      - path: "/fuse/{{ .Values.global.gfsnamespace }}/"
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-gfsfuse
+            port:
+              number: 3000
+---
