@@ -106,10 +106,12 @@ spec:
   rules:
   # - host: "{{ .Release.Name }}.localdomain"
   # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
-  - host: "gfs.{{ .Values.global.domain.name }}"
+  # - host: "gfs.{{ .Values.global.domain.name }}"
+  - host: "fuse.{{ .Values.global.gfsnamespace }}.gfs.{{ .Values.global.domain.name }}"
     http:
       paths:
-      - path: "/fuse/{{ .Values.global.gfsnamespace }}/"
+      # - path: "/fuse/{{ .Values.global.gfsnamespace }}/"
+      - path: "/"
         pathType: Prefix
         backend:
           service:
