@@ -1,0 +1,5 @@
+
+image:
+  repository: buildregistry.localdomain/gfs-fuse
+  tag: latest
+  pullPolicy: Always
