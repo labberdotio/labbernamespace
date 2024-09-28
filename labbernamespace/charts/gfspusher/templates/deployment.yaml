@@ -120,7 +120,7 @@ spec:
   rules:
   # - host: "{{ .Release.Name }}.localdomain"
   # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
-  - host: "gfs.{{ .Values.global.domain.name }}"
+  - host: "svc.{{ .Values.global.domain.name }}"
     http:
       paths:
       - path: "/pusher/{{ .Values.global.gfsnamespace }}/"
