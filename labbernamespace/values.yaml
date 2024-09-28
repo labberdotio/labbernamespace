@@ -6,6 +6,7 @@ global:
   domain:
     # host: labber
     name: labber.io
+    #  name: labber.localdomain
 
   gfsnamespace: namespace
 
@@ -58,13 +59,5 @@ gfssubscriber:
 
   image:
     repository: buildregistry.localdomain/gfs-subscriber
-    tag: latest
-    pullPolicy: Always
-
-
-gfsfuse:
-
-  image:
-    repository: buildregistry.localdomain/gfs-fuse
     tag: latest
     pullPolicy: Always
