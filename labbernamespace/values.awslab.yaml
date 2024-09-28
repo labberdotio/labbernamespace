@@ -4,12 +4,10 @@ global:
   loglevel: INFO
 
   docker:
-    repo: buildregistry.localdomain
-    # repo: 513562861795.dkr.ecr.us-west-2.amazonaws.com
+    repo: 513562861795.dkr.ecr.us-west-2.amazonaws.com
 
   domain:
-    # host: labber
-    name: labber.localdomain
+    name: labber.io
 
   gfsnamespace: namespace
 
