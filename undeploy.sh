@@ -1,6 +1,5 @@
-#!/bin/bash
-
-# set -x
+#!/usr/bin/env bash
+set -e
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -11,6 +10,9 @@ done
 THIS_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 echo "This Dir: $THIS_DIR"
 source $THIS_DIR/settings.sh
+
+cp ${THIS_DIR}/labber/${HELM_VALUES} ${THIS_DIR}/labber/values.yaml
+cp ${THIS_DIR}/labbernamespace/${HELM_VALUES} ${THIS_DIR}/labbernamespace/values.yaml
 
 # export GFSNAMESPACE="buildkite"
 # export GFSNAMESPACE="snagger"

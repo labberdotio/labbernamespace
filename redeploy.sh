@@ -1,6 +1,5 @@
-#!/bin/bash
-
-# set -x
+#!/usr/bin/env bash
+set -e
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -12,8 +11,8 @@ THIS_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 echo "This Dir: $THIS_DIR"
 source $THIS_DIR/settings.sh
 
-# export GFSNAMESPACE="buildkite"
-# export GFSNAMESPACE="snagger"
+cp ${THIS_DIR}/labber/${HELM_VALUES} ${THIS_DIR}/labber/values.yaml
+cp ${THIS_DIR}/labbernamespace/${HELM_VALUES} ${THIS_DIR}/labbernamespace/values.yaml
 
 export GFSNAMESPACE="${1}"
 if [ -z "${GFSNAMESPACE}" ]; then
@@ -30,8 +29,6 @@ export HELM_NAMESPACE_RELEASE="${GFSNAMESPACE}-${HELM_RELEASE}"
 export HELM_NAMESPACE_DOMAIN="${HELM_DOMAIN}"
 
 # kubectl create namespace ${HELM_NAMESPACE_NAMESPACE} || true
-
-# cp ${THIS_DIR}/labbernamespace/${HELM_VALUES} ${THIS_DIR}/labbernamespace/values.yaml
 
 helm upgrade \
   --namespace ${HELM_NAMESPACE_NAMESPACE} ${HELM_DEBUG} \
