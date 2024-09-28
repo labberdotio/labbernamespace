@@ -27,7 +27,7 @@ spec:
       containers:
       - name: gfsrenderer
         # image: buildregistry.localdomain/gfs-renderer:latest
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        image: {{ .Values.global.docker.repo }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 5002

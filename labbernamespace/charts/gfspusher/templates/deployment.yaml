@@ -27,7 +27,7 @@ spec:
       containers:
       - name: gfspusher
         # image: buildregistry.localdomain/gfs-pusher:latest
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        image: {{ .Values.global.docker.repo }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           requests:
