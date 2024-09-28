@@ -1,5 +1,5 @@
 
 image:
-  repository: buildregistry.localdomain/gfs-renderer
+  repository: gfs-renderer
   tag: latest
   pullPolicy: Always

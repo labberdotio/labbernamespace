@@ -27,7 +27,7 @@ spec:
       containers:
       - name: gfsrippler
         # image: buildregistry.localdomain/gfs-rippler:latest
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        image: {{ .Values.global.docker.repo }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 5001
@@ -113,7 +113,7 @@ spec:
   rules:
   # - host: "{{ .Release.Name }}.localdomain"
   # - host: "{{ .Values.global.domain.host }}.{{ .Values.global.domain.name }}"
-  - host: "gfs.{{ .Values.global.domain.name }}"
+  - host: "svc.{{ .Values.global.domain.name }}"
     http:
       paths:
       - path: "/rippler/{{ .Values.global.gfsnamespace }}/"

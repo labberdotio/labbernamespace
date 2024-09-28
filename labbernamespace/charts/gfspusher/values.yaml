@@ -1,5 +1,5 @@
 
 image:
-  repository: buildregistry.localdomain/gfs-pusher
+  repository: gfs-pusher
   tag: latest
   pullPolicy: Always

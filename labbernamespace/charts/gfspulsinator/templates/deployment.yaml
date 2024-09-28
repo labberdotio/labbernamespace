@@ -27,7 +27,7 @@ spec:
       containers:
       - name: gfspulsinator
         # image: buildregistry.localdomain/gfs-pulsinator:latest
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        image: {{ .Values.global.docker.repo }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 5005
